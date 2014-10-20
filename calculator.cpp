@@ -24,7 +24,8 @@ typedef enum {
     T_NUMBER,
     T_EOF,
 	T_NEWLINE,
-	T_WHITESPACE
+	T_WHITESPACE,
+	T_NONTOKEN
 } token;
 
 
@@ -62,6 +63,10 @@ std::string tokenToString(token toConvert) {
             return std::string("number");
         case T_EOF:
             return std::string("EOF");
+		case T_NEWLINE:
+            return std::string("NEWLINE");
+		case T_NONTOKEN:
+            return std::string("NONTOKEN");
     }
 }
 
@@ -107,12 +112,18 @@ class Scanner {
 		//int lineNumber;
 		string currentWord;
 		int tokenLength;
+		token next;
+		char number[16];
     
 	public:
 		token nextToken(); 
 		void eatToken(token);
 		int lineNumber();
 		int getNumberValue();
+		void findToken();
+		void clearNumArray();
+		void appendNumToArray(char c);
+		void repopulateIstream();
     
     // You may need to write a constructor for the scanner. This is not
     // required by the project description, but you may need it to complete
@@ -120,96 +131,147 @@ class Scanner {
     // WRITEME
 };
 
+void Scanner::clearNumArray() {
+	for (int i = 1; i < 16; i++) {
+		number[i]=0;
+	}
+	number[0]=1;
+}
+
+void Scanner::appendNumToArray(char c) {
+	number[tokenLength]=c;
+}
+
+void Scanner::repopulateIstream() {
+	for (int i = 15; i > 0; i--)  {
+		cin.putback(number[i]);
+		//cout<<"putting back: "<<i<<endl;
+	}
+}
+
+
 token Scanner::nextToken() {
     // This is a placeholder token, you will need to replace this code
-    // with code to return the correct next token.
-    
-    // WRITEME
-	token nextToken;
-	tokenLength = 1;
-	cout << "scanner.nextToken() called \n";
-	char c, hold;
-	bool spaces = true;
-	//char eof = cin.eof();
-	c=cin.peek();
-	if (c == cin.eof()) {
-		cout<<"eof\n";
-		return T_EOF;
-	}
+    // with code to return the correct next token
+	findToken();
+	return next;
+}
+void Scanner::findToken() {
+	next = T_NONTOKEN;
+	tokenLength = 0; //sets length of token to be 1 by default
+	clearNumArray(); //clears array of numbers to be clear
+	//cout << "scanner.nextToken() called. ";
+	char c, hold; 
+	bool spaces = true; //boolean to indicate whether a series of spaces is occurring
+	bool numbers = true; //boolean to indicate whether in a series of digits
+	//look at next item in stream
+	c=cin.peek(); 
+	cout<<"token1: \""<<c<<"\""<<endl;
 	
+	//if multiple spaces present, pass through and discard them
 	while (spaces) {
 		c = cin.peek();
-		cout<<c<<endl;
 		if (c == ' ') {
 			cout<<"spaced \n";
 			cin.get();
 			continue;
 			}
-		else 
+		else {
 			spaces = false;
-		cout<<"spaces: "<<spaces<<endl;
-		} 
+		}
+	} 
+	if (c == '0' || c == '1' || c == '2'
+		|| c == '3' || c == '4' || c == '5'
+		|| c == '6' || c == '7' || c == '8' 
+		|| c == '9' ) {
+		next = T_NUMBER;
+		tokenLength++;
+		cout<<"tokenLength: "<<tokenLength<<"\n";
+	}
+	//check to see if it is a number happening
+	/*do {
+		c = cin.peek();
+		if (c == '0' || c == '1' || c == '2'
+			|| c == '3' || c == '4' || c == '5'
+			|| c == '6' || c == '7' || c == '8' 
+			|| c == '9' ) {
+			cout<<"starting "<<cin.peek()<<" ";
+			cin.get();
+			cout<<cin.peek()<<" ";
+			cin.get();
+			cout<<cin.peek()<<" ending\n";
+			next = T_NUMBER; //change token type to T_NUMBER
+			tokenLength ++; //increase token length counter
+			//hold = cin.get();
+			appendNumToArray(hold);
+			cout<<"NUMBER\n";
+			//char hold2 = cin.get();
+			cout<<"LOOKAHEAD: "<<cin.peek()<<endl;
+		}
+		else {
+			//cout<<"NUMBERS FALSE\n";
+			numbers = false;
+		}
+	} while (numbers);*/
+	//return T_NUMBER;
+	//cout<<"out of loop\n";
+	
+	/*if (next == T_NUMBER) {
+		//cout<<"repopulating stream: \""<<c<<"\"\n";
+		repopulateIstream();
+	}*/
+	else {
+		tokenLength = 1;
 		switch (c) {
 			case '-':
-				nextToken = T_MINUS;
+				next = T_MINUS;
 				break;
 			case '+':
-				nextToken = T_PLUS;
+				cout<<"PLUSTOKEN\n";
+				next = T_PLUS;
 				break;
 			case '*':
-				if (cin.peek()!= cin.eof()) {
-					hold = cin.get();
-					cout<<"test"<<cin.peek()<<endl;
-					if (cin.peek() == '*') {
-						//cout<<
-						nextToken = T_POWER;
-						tokenLength ++;
-					}
-					cin.putback(hold);
-				}
-				else 
-					nextToken = T_MULTIPLY;
+				next = T_MULTIPLY;
 				break;
 			case '/':
-				nextToken = T_DIVIDE;
+				next = T_DIVIDE;
 				break;
 			case '=':
-				nextToken = T_EQUALS;
+				next = T_EQUALS;
 				break;
 			case '(':
-				nextToken = T_OPENPAREN;
+				next = T_OPENPAREN;
 				break;
 			case ')':
-				nextToken = T_CLOSEPAREN;
+				next = T_CLOSEPAREN;
 				break;
 			case '[':
-				nextToken = T_OPENBRACKET;
+				next = T_OPENBRACKET;
 				break;
 			case ']':
-				nextToken = T_CLOSEBRACKET;
+				next = T_CLOSEBRACKET;
 				break;
 			case 'm':
-				nextToken = T_M;
+				next = T_M;
 				break;
 			case ';':
-				nextToken = T_SEMICOLON;
+				next = T_SEMICOLON;
 				break;
 			case '\n':
-				nextToken = T_NEWLINE;
+				next = T_NEWLINE;
 				break;
-			/*case eof:
-				nextToken = T_EOF;*/
 			default:
-				nextToken=T_MINUS;
-				break;				
+				next = T_EOF;
+				break;			
 		}
-	cout<<"token: "<<tokenToString(nextToken)<<endl;
-	
-    return nextToken;
+	}
+	cout<<"token2: \""<<c<<" "<<tokenToString(next)<<"\""<<endl;
+	//cout<<"token: "<<tokenToString(next)<<endl;
 }
 
 void Scanner::eatToken(token toConsume) {
     // This function consumes the next token.
+	cout<<"EATING TOKEN: "<<tokenToString(toConsume)<<endl;
 	switch (toConsume) {
         case T_PLUS:
             cin.get();
@@ -251,7 +313,8 @@ void Scanner::eatToken(token toConsume) {
             cin.get();
 			break;
         case T_NUMBER:
-            cin.get();
+			for (int i = 1; i<= tokenLength; i++)
+				cin.get();
 			break;
         case T_EOF:
             cin.get();
@@ -332,18 +395,22 @@ void Parser::Start() {
 
 int main(int argc, char* argv[]) {
 
-	//std::cout<<tokenToString(T_MINUS)<<std::endl;
+	cout<<"MAIN: "<<std::endl;
     if (argc == 2 && (strcmp(argv[1], "-s") == 0)) {
+		cout<<"IN IF\n";
         Scanner scanner;
         while (scanner.nextToken() != T_EOF) {
-            std::cout << tokenToString(scanner.nextToken()) << " ";
+			cout<<"inLoop\n";
+            std::cout <<tokenToString(scanner.nextToken()) << " ";
             scanner.eatToken(scanner.nextToken());
         }
         std::cout<<std::endl;
     } else if (argc == 2 && (strcmp(argv[1], "-e") == 0)) {
+		cout<<"IN ELSE IF\n";
         Parser parser(true);
         parser.parse();
     } else {
+		cout<<"IN ELSE\n";
         Parser parser(false);
         parser.parse();
     }
