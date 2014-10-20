@@ -166,13 +166,13 @@ void Scanner::findToken() {
 	bool numbers = true; //boolean to indicate whether in a series of digits
 	//look at next item in stream
 	c=cin.peek(); 
-	cout<<"token1: \""<<c<<"\""<<endl;
+	//cout<<"token1: \""<<c<<"\""<<endl;
 	
 	//if multiple spaces present, pass through and discard them
 	while (spaces) {
 		c = cin.peek();
 		if (c == ' ') {
-			cout<<"spaced \n";
+			cout<<"spaced\n";
 			cin.get();
 			continue;
 			}
@@ -180,12 +180,18 @@ void Scanner::findToken() {
 			spaces = false;
 		}
 	} 
+	
+	
 	if (c == '0' || c == '1' || c == '2'
 		|| c == '3' || c == '4' || c == '5'
 		|| c == '6' || c == '7' || c == '8' 
 		|| c == '9' ) {
 		next = T_NUMBER;
 		tokenLength++;
+		char k = cin.get();
+		cout<<k<<endl;
+		cin.putback(k);
+		cout<<(char)cin.peek()<<endl;
 		cout<<"tokenLength: "<<tokenLength<<"\n";
 	}
 	//check to see if it is a number happening
@@ -265,7 +271,7 @@ void Scanner::findToken() {
 				break;			
 		}
 	}
-	cout<<"token2: \""<<c<<" "<<tokenToString(next)<<"\""<<endl;
+	cout<<"token2: \""<<c<<" "<<tokenToString(next)<<"\""<<endl<<endl;
 	//cout<<"token: "<<tokenToString(next)<<endl;
 }
 
