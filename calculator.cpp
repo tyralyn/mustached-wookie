@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstdio>
 
+using namespace std;
 // This is the token type, and contains all possible tokens in our language.
 typedef enum {
     T_PLUS,
@@ -21,8 +22,12 @@ typedef enum {
     T_M,
     T_PRINT,
     T_NUMBER,
-    T_EOF
+    T_EOF,
+	T_NEWLINE,
+	T_WHITESPACE
 } token;
+
+
 
 // This function will convert a token to a string, for display.
 std::string tokenToString(token toConvert) {
@@ -98,12 +103,16 @@ class Scanner {
     // You are allowed to private fields to the scanner, and this may be
     // necessary to complete your implementation. However, this is not
     // required as part of the project specification.
+	private: 
+		//int lineNumber;
+		string currentWord;
+		int tokenLength;
     
-public:
-    token nextToken(); 
-    void eatToken(token);
-    int lineNumber();
-    int getNumberValue();
+	public:
+		token nextToken(); 
+		void eatToken(token);
+		int lineNumber();
+		int getNumberValue();
     
     // You may need to write a constructor for the scanner. This is not
     // required by the project description, but you may need it to complete
@@ -116,7 +125,79 @@ token Scanner::nextToken() {
     // with code to return the correct next token.
     
     // WRITEME
-    return T_EOF;
+	token nextToken;
+	tokenLength = 1;
+	cout << "scanner.nextToken() called \n";
+	char c, hold;
+	c=cin.peek();
+	
+	while (true) {
+		c = cin.peek();
+		cout<<c<<endl;
+		if (c == ' ') {
+			cout<<"spaced \n";
+			cin.get();
+			continue;
+			}
+		else {
+			switch (c) {
+				case '-':
+					nextToken = T_MINUS;
+					break;
+				case '+':
+					nextToken = T_PLUS;
+					break;
+				case '*':
+					cin.get();
+					cout<<"test"<<cin.peek()<<endl;
+					if (cin.peek() == '*') {
+						cin.putback(hold);
+						nextToken = T_POWER;
+						tokenSize = 
+					}
+					else
+						nextToken = T_MULTIPLY;
+					break;
+				case '/':
+					nextToken = T_DIVIDE;
+					break;
+				case '=':
+					nextToken = T_EQUALS;
+					break;
+				case '(':
+					nextToken = T_OPENPAREN;
+					break;
+				case ')':
+					nextToken = T_CLOSEPAREN;
+					break;
+				case '[':
+					nextToken = T_OPENBRACKET;
+					break;
+				case ']':
+					nextToken = T_CLOSEBRACKET;
+					break;
+				case 'm':
+					nextToken = T_M;
+					break;
+				case ';':
+					nextToken = T_SEMICOLON;
+					break;
+				case '\n':
+					nextToken = T_NEWLINE;
+					break;
+				default:
+					nextToken=T_EOF;
+					break;
+				
+			}
+			//break;
+		}
+		break;
+	}
+	
+	cout<<"token: "<<tokenToString(nextToken)<<endl;
+	
+    return nextToken;
 }
 
 void Scanner::eatToken(token toConsume) {
@@ -196,6 +277,8 @@ void Parser::Start() {
 // WRITEME (The rest of the nonterminal functions will need to be implemented here)
 
 int main(int argc, char* argv[]) {
+
+	//std::cout<<tokenToString(T_MINUS)<<std::endl;
     if (argc == 2 && (strcmp(argv[1], "-s") == 0)) {
         Scanner scanner;
         while (scanner.nextToken() != T_EOF) {
