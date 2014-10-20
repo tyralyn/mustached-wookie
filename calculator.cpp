@@ -129,9 +129,15 @@ token Scanner::nextToken() {
 	tokenLength = 1;
 	cout << "scanner.nextToken() called \n";
 	char c, hold;
+	bool spaces = true;
+	//char eof = cin.eof();
 	c=cin.peek();
+	if (c == cin.eof()) {
+		cout<<"eof\n";
+		return T_EOF;
+	}
 	
-	while (true) {
+	while (spaces) {
 		c = cin.peek();
 		cout<<c<<endl;
 		if (c == ' ') {
@@ -139,62 +145,64 @@ token Scanner::nextToken() {
 			cin.get();
 			continue;
 			}
-		else {
-			switch (c) {
-				case '-':
-					nextToken = T_MINUS;
-					break;
-				case '+':
-					nextToken = T_PLUS;
-					break;
-				case '*':
-					cin.get();
+		else 
+			spaces = false;
+		cout<<"spaces: "<<spaces<<endl;
+		} 
+		switch (c) {
+			case '-':
+				nextToken = T_MINUS;
+				break;
+			case '+':
+				nextToken = T_PLUS;
+				break;
+			case '*':
+				if (cin.peek()!= cin.eof()) {
+					hold = cin.get();
 					cout<<"test"<<cin.peek()<<endl;
 					if (cin.peek() == '*') {
-						cin.putback(hold);
+						//cout<<
 						nextToken = T_POWER;
-						tokenSize = 
+						tokenLength ++;
 					}
-					else
-						nextToken = T_MULTIPLY;
-					break;
-				case '/':
-					nextToken = T_DIVIDE;
-					break;
-				case '=':
-					nextToken = T_EQUALS;
-					break;
-				case '(':
-					nextToken = T_OPENPAREN;
-					break;
-				case ')':
-					nextToken = T_CLOSEPAREN;
-					break;
-				case '[':
-					nextToken = T_OPENBRACKET;
-					break;
-				case ']':
-					nextToken = T_CLOSEBRACKET;
-					break;
-				case 'm':
-					nextToken = T_M;
-					break;
-				case ';':
-					nextToken = T_SEMICOLON;
-					break;
-				case '\n':
-					nextToken = T_NEWLINE;
-					break;
-				default:
-					nextToken=T_EOF;
-					break;
-				
-			}
-			//break;
+					cin.putback(hold);
+				}
+				else 
+					nextToken = T_MULTIPLY;
+				break;
+			case '/':
+				nextToken = T_DIVIDE;
+				break;
+			case '=':
+				nextToken = T_EQUALS;
+				break;
+			case '(':
+				nextToken = T_OPENPAREN;
+				break;
+			case ')':
+				nextToken = T_CLOSEPAREN;
+				break;
+			case '[':
+				nextToken = T_OPENBRACKET;
+				break;
+			case ']':
+				nextToken = T_CLOSEBRACKET;
+				break;
+			case 'm':
+				nextToken = T_M;
+				break;
+			case ';':
+				nextToken = T_SEMICOLON;
+				break;
+			case '\n':
+				nextToken = T_NEWLINE;
+				break;
+			/*case eof:
+				nextToken = T_EOF;*/
+			default:
+				nextToken=T_MINUS;
+				break;				
 		}
-		break;
-	}
-	
 	cout<<"token: "<<tokenToString(nextToken)<<endl;
 	
     return nextToken;
@@ -202,8 +210,54 @@ token Scanner::nextToken() {
 
 void Scanner::eatToken(token toConsume) {
     // This function consumes the next token.
-    
-    // WRITEME
+	switch (toConsume) {
+        case T_PLUS:
+            cin.get();
+			break;
+        case T_MINUS:
+            cin.get();
+			break;
+        case T_MULTIPLY:
+            cin.get();
+			break;
+        case T_POWER:
+            cin.get();
+			break;
+        case T_DIVIDE:
+            cin.get();
+			break;
+        case T_OPENPAREN:
+            cin.get();
+			break;
+        case T_CLOSEPAREN:
+            cin.get();
+			break;
+        case T_OPENBRACKET:
+            cin.get();
+			break;
+        case T_CLOSEBRACKET:
+            cin.get();
+			break;
+        case T_EQUALS:
+            cin.get();
+			break;
+        case T_SEMICOLON:
+            cin.get();
+			break;
+        case T_M:
+            cin.get();
+			break;
+        case T_PRINT:
+            cin.get();
+			break;
+        case T_NUMBER:
+            cin.get();
+			break;
+        case T_EOF:
+            cin.get();
+			break;
+    }
+	
 }
 
 int Scanner::lineNumber() {
