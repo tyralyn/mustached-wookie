@@ -109,7 +109,7 @@ class Scanner {
     // necessary to complete your implementation. However, this is not
     // required as part of the project specification.
 	private: 
-		//int lineNumber;
+		int line = 1;
 		string currentWord;
 		int tokenLength;
 		token next;
@@ -124,6 +124,7 @@ class Scanner {
 		void clearNumArray();
 		void appendNumToArray(char c);
 		void repopulateIstream();
+		void repopulatePrint();
 		void printNumber();
     // You may need to write a constructor for the scanner. This is not
     // required by the project description, but you may need it to complete
@@ -145,11 +146,14 @@ void Scanner::appendNumToArray(char c) {
 void Scanner::repopulateIstream() {
 	for (int i = tokenLength; i > 0; i--)  {
 		cin.putback(number[i]);
-		cout<<"putting back: "<<number[i]<<endl;
 	}
-	for (int i = tokenLength; i > 0; i--) {
-		cout<<"peeking at "<<(char)cin.peek()<<endl;
-	}
+}
+
+void Scanner:: repopulatePrint() {
+	cin.putback('n');
+	cin.putback('i');
+	cin.putback('r');
+	cin.putback('p');
 }
 
 void Scanner::printNumber() {
@@ -164,25 +168,23 @@ token Scanner::nextToken() {
     // This is a placeholder token, you will need to replace this code
     // with code to return the correct next token
 	findToken();
+	//cout<<"token: "<<tokenToString(next)<<endl;
 	return next;
 }
 void Scanner::findToken() {
 	next = T_NONTOKEN;
 	tokenLength = 0; //sets length of token to be 1 by default
 	clearNumArray(); //clears array of numbers to be clear
-	cout << "scanner.nextToken() called. ";
 	char c, hold; 
 	bool spaces = true; //boolean to indicate whether a series of spaces is occurring
 	bool numbers = true; //boolean to indicate whether in a series of digits
 	//look at next item in stream
 	c=cin.peek(); 
-	//cout<<"token1: \""<<c<<"\""<<endl;
 	
 	//if multiple spaces present, pass through and discard them
 	while (spaces) {
 		c = cin.peek();
 		if (c == ' ') {
-			cout<<"spaced\n";
 			cin.get();
 			continue;
 			}
@@ -191,7 +193,13 @@ void Scanner::findToken() {
 		}
 	} 
 	
+	//if next char is eof, set next token to eof and end
+	if (!cin) {
+		next = T_EOF;
+		return;
+	}
 	
+	//check for next character being a number by cycling through until no longer a number
 	do {
 		c = cin.peek();
 		if (c == '0' || c == '1' || c == '2'
@@ -202,63 +210,77 @@ void Scanner::findToken() {
 			tokenLength++;
 			appendNumToArray(c);
 			char k = cin.get();
-			cout<<k<<endl;
-			//cin.putback(k);
-			//cout<<(char)cin.peek()<<endl;
-			cout<<"tokenLength: "<<tokenLength<<"\n";
 			}
 		else {
 			numbers = false;
 		}
 	} while (numbers);
-	printNumber();
-	cout<<"token: "<<tokenToString(next)<<"\n";
 	
-	//check to see if it is a number happening
-	/*do {
-		c = cin.peek();
-		if (c == '0' || c == '1' || c == '2'
-			|| c == '3' || c == '4' || c == '5'
-			|| c == '6' || c == '7' || c == '8' 
-			|| c == '9' ) {
-			cout<<"starting "<<cin.peek()<<" ";
-			cin.get();
-			cout<<cin.peek()<<" ";
-			cin.get();
-			cout<<cin.peek()<<" ending\n";
-			next = T_NUMBER; //change token type to T_NUMBER
-			tokenLength ++; //increase token length counter
-			//hold = cin.get();
-			appendNumToArray(hold);
-			cout<<"NUMBER\n";
-			//char hold2 = cin.get();
-			cout<<"LOOKAHEAD: "<<cin.peek()<<endl;
-		}
-		else {
-			//cout<<"NUMBERS FALSE\n";
-			numbers = false;
-		}
-	} while (numbers);*/
-	//return T_NUMBER;
-	//cout<<"out of loop\n";
-	
+	//if a number, put digits back in stream
 	if (next == T_NUMBER) {
-		//cout<<"repopulating stream: \""<<c<<"\"\n";
 		repopulateIstream();
 		return;
 	}
-	//else {
+	
+	//check for a print statement
+	if (cin.peek() == 'p') {
+		cin.get();
+		hold = cin.peek();
+		if ( hold == 'r') {
+			cin.get();
+			hold = cin.peek();
+			if (hold == 'i') {
+				cin.get();
+				hold = cin.peek();
+				if (hold == 'n') {
+					cin.get();
+					hold = cin.peek();
+					if (hold == 't') {
+						//cout<<"PRINTO!\n";
+						next = T_PRINT;
+						repopulatePrint();
+						return;
+					}
+					else {
+						//cout<<"afterError T: "<<(char)cin.peek()<<endl;
+						scanError(lineNumber(), hold);
+					}
+					
+				}
+				else {
+					//cout<<"afterError N: "<<(char)cin.peek()<<endl;
+					scanError(lineNumber(), hold);
+				}
+			}
+			else {
+			//cout<<"afterError I: "<<(char)cin.peek()<<endl;
+			scanError(lineNumber(),hold);
+			}
+		}
+		else {
+			//cout<<"afterError R: "<<(char)cin.peek()<<endl;
+			scanError(lineNumber(), hold);
+		}
+	}	
+		
 		tokenLength = 1;
+		//check for anything else
 		switch (c) {
 			case '-':
 				next = T_MINUS;
 				break;
 			case '+':
-				cout<<"PLUSTOKEN\n";
 				next = T_PLUS;
 				break;
 			case '*':
-				next = T_MULTIPLY;
+				hold = cin.get();
+				if (cin.peek()=='*') {
+					//cout<<"SO POWERFUL\n";
+					next = T_POWER;
+					cin.putback('*');
+				}
+				else
+					next = T_MULTIPLY;
 				break;
 			case '/':
 				next = T_DIVIDE;
@@ -286,19 +308,25 @@ void Scanner::findToken() {
 				break;
 			case '\n':
 				next = T_NEWLINE;
+				line++;
 				break;
 			default:
-				next = T_EOF;
-				break;			
-		//}
+				cout<<"default error\n";
+				scanError(lineNumber(),c);
+				break;
 	}
-	cout<<"token2: \""<<c<<" "<<tokenToString(next)<<"\""<<endl<<endl;
-	//cout<<"token: "<<tokenToString(next)<<endl;
+	//cout<<"token2: \""<<c<<" "<<tokenToString(next)<<"\""<<endl<<endl;
+	//char c1 = cin.get();
+	//char c2 = cin.get();
+	//char c3 = cin.get();
+	//char c4 = cin.get();
+	//char c5 = cin.get();
+	//cout<<"token: "<<tokenToString(next)<<" upcoming: "<<c1<<c2<<c3<<c4<<c5<<endl;
 }
 
 void Scanner::eatToken(token toConsume) {
     // This function consumes the next token.
-	cout<<"EATING TOKEN: "<<tokenToString(toConsume)<<endl;
+	//cout<<"--EATING TOKEN: "<<tokenToString(toConsume)<<endl;
 	switch (toConsume) {
         case T_PLUS:
             cin.get();
@@ -311,6 +339,7 @@ void Scanner::eatToken(token toConsume) {
 			break;
         case T_POWER:
             cin.get();
+			cin.get();
 			break;
         case T_DIVIDE:
             cin.get();
@@ -335,17 +364,25 @@ void Scanner::eatToken(token toConsume) {
 			break;
         case T_M:
             cin.get();
+            cin.get();
 			break;
         case T_PRINT:
             cin.get();
+			cin.get();
+			cin.get();
+			cin.get();
+			cin.get();
 			break;
         case T_NUMBER:
-			cout<<"EATING NUMBER\n";
+			//cout<<"EATING NUMBER\n";
 			for (int i = 1; i<= tokenLength; i++)
 				cin.get();
 			break;
         case T_EOF:
             cin.get();
+			break;
+		case T_NEWLINE:
+			cin.get();
 			break;
     }
 	
@@ -356,7 +393,7 @@ int Scanner::lineNumber() {
     // with code to return the current line number (to be used for errors).
     
     // WRITEME
-    return 0;
+    return line;
 }
 
 int Scanner::getNumberValue() {
@@ -423,22 +460,22 @@ void Parser::Start() {
 
 int main(int argc, char* argv[]) {
 
-	cout<<"MAIN: "<<std::endl;
+	//cout<<"MAIN: "<<std::endl;
     if (argc == 2 && (strcmp(argv[1], "-s") == 0)) {
-		cout<<"IN IF\n";
+		//cout<<"IN IF\n";
         Scanner scanner;
         while (scanner.nextToken() != T_EOF) {
-			cout<<"inLoop\n";
+			//cout<<"inLoop\n";
             std::cout <<tokenToString(scanner.nextToken()) << " ";
             scanner.eatToken(scanner.nextToken());
         }
         std::cout<<std::endl;
     } else if (argc == 2 && (strcmp(argv[1], "-e") == 0)) {
-		cout<<"IN ELSE IF\n";
+		//cout<<"IN ELSE IF\n";
         Parser parser(true);
         parser.parse();
     } else {
-		cout<<"IN ELSE\n";
+		//cout<<"IN ELSE\n";
         Parser parser(false);
         parser.parse();
     }
