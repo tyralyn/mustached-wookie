@@ -28,7 +28,19 @@ typedef enum {
 	T_NONTOKEN
 } token;
 
-
+typedef enum {
+	N_START,
+	N_STATEMENTS,
+	N_STATEMENTSP,
+	N_STATEMENT,
+	N_EXPRESSION,
+	N_EXPRESSIONP,
+	N_TERM,
+	N_TERMP,
+	N_EXPONENTIATION,
+	N_EXPONENTIATIONP,
+	N_FACTOR
+} nonterminal;	
 
 // This function will convert a token to a string, for display.
 std::string tokenToString(token toConvert) {
@@ -406,41 +418,66 @@ int Scanner::getNumberValue() {
     return 0;
 }
 
+class Table {
+	private:
+		/*
+		 * TERMINAL ORDER
+		 *      m print number ( ) [ ] ; eof + - * / **
+		 * NONTERMINAL ORDER
+		 *      start statements statements' 
+		 *      statement expression expression' 
+		 *      term term' exponentiation 
+		 *      exponentiation' factor
+		 */
+		int ruleIndex[11][14] = { 
+		 /* {  m   p     n   (   )     [   ]   ;     $   +   -     *   /   **   */
+			{  1 , 1 ,   0 , 0 , 0 ,   0 , 0 , 0 ,   0 , 0 , 0 ,   0 , 0 , 0  } ,   // start
+			{  2 , 2 ,   0 , 0 , 0 ,   0 , 0 , 0 ,   0 , 0 , 0 ,   0 , 0 , 0  } ,   // statements
+			{  0 , 0 ,   0 , 0 , 0 ,   0 , 0 , 3 ,   4 , 0 , 0 ,   0 , 0 , 0  } ,   // statements'
+			{  5 , 6 ,   0 , 0 , 0 ,   0 , 0 , 0 ,   0 , 0 , 0 ,   0 , 0 , 0  } ,   // statement
+			{  7 , 0 ,   7 , 7 , 0 ,   0 , 0 , 0 ,   0 , 0 , 0 ,   0 , 0 , 0  } ,   // expression
+			{  0 , 0 ,   0 , 0 , 10,   0 , 10, 10,   10, 8 , 9 ,   0 , 0 , 0  } ,   // expression'
+			{  11, 0 ,   11, 11, 0 ,   0 , 0 , 0 ,   0 , 0 , 0 ,   0 , 0 , 0  } ,   // term
+			{  0 , 0 ,   0 , 0 , 14,   0 , 14, 14,   14, 14, 14,   12, 13, 0  } ,   // term'
+		   	{  15, 0 ,   15, 15, 0 ,   0 , 0 , 0 ,   0 , 0 , 0 ,   0 , 0 , 0  } ,   // exponentiation
+			{  0 , 0 ,   0 , 0 , 17,   0 , 17, 17,   17, 17, 17,   17, 17, 16 } ,   // exponentiation'
+			{  19, 0 ,   20, 18, 0 ,   0 , 0 , 0 ,   0 , 0 , 0 ,   0 , 0 , 0  } ,   // factor
+		 };
+	public:
+		void getRule(int row, int column) {
+			cout<<"ruleIndex: "<<ruleIndex[row-1][column-1]<<endl;
+		}
+		 
+};
+
 struct node {
 	token t = T_NONTOKEN;
 	int num;
 	node* next = NULL; 
 };
 
-class stack {
+class Stack {
 	node * head;
 	//node * second;
 	public:
-	stack() {
+	Stack() {
 		head = NULL;
 	};
 	
 	void push(token T) {
 		cout<<"pushing "<<tokenToString(T)<<endl;
 		node* n = new node();
-		//cout<<"quarter prelim "<<n<<"\n";
 		n->next = NULL;
-		//cout<<"halfway prelim\n";
 		n->t = T;
-		//cout<<"done prelim "<<tokenToString(T)<<endl;
 		if (!head)
 			head = n;
 		else {
-			//cout<<"more than one item in stack\n";
 			node* temp = head;
 			while (temp->next) {
-				//cout<<"inLoop\n";
 				temp = temp->next;
-				//cout<<"leavingLoop\n";
 			}
 			temp->next = n;
 		}
-		//cout<<"done pushing "<<tokenToString(T)<<endl;
 	};
 	
 	node* pop() {
@@ -485,7 +522,8 @@ class Parser {
     
 private:
     Scanner scanner;
-    
+    Stack stack;
+	Table table;
     // This flag indicates whether we should perform evaluation and throw
     // out-of-bounds and divide-by-zero errors. ONLY evaluate and throw these
     // errors if this flag is set to TRUE.
@@ -496,26 +534,66 @@ private:
     // WRITEME
 
 public:
-	void rule1();
-	void rule2();
-	void rule3();
-	void rule4();
-	void rule5();
-	void rule6();
-	void rule7();
-	void rule8();
-	void rule9();
-	void rule10();
-	void rule11();
-	void rule12();
-	void rule13();
-	void rule14();
-	void rule15();
-	void rule16();
-	void rule17();
-	void rule18();
-	void rule19();
-	void rule20();
+	void rule1() { // start ::= statements
+		
+	};
+	void rule2() { // statements ::= statement statements'
+	
+	};
+	void rule3() { // statements' ::= ;statement statements'
+	
+	};
+	void rule4() { // statements' ::= epsilon
+	
+	};
+	void rule5() { // statement ::= m [ expression ]
+	
+	};
+	void rule6() { // statement ::= print expression
+	
+	};
+	void rule7() { // expression ::= term expression'
+	
+	};
+	void rule8() { // expression' ::= + term expression'
+	
+	};
+	void rule9() { // expression' ::= - term expression'
+	
+	};
+	void rule10() { // expression' ::= epsilon
+	
+	};
+	void rule11() { // term ::= exponentiation term'
+	
+	};
+	void rule12() { // term' ::= * exponentiation term'
+	
+	};
+	void rule13() { // term' ::= / exponentiation term'
+	
+	};
+	void rule14() { // term' ::= epsilon
+	
+	};
+	void rule15() { // exponentiation ::= factor exponentiation'
+	
+	};
+	void rule16() { // exponentiation' ::= ** exponentiation'
+	
+	};
+	void rule17(){ // exponentiation' ::= epsilon
+	
+	};
+	void rule18() { // factor ::= ( expression )
+	
+	};
+	void rule19() { // factor ::= m [ expression ]
+	
+	};
+	void rule20(){ // factor ::= number
+	
+	};
 	
     void parse();
     Parser(bool evaluate) : evaluate(evaluate) {
@@ -536,8 +614,40 @@ void Parser::Start() {
     // which accepts infinite numbers of T_PLUS. You will need to
     // replace this with correct code for the real grammar start symbol.
     
+	switch (scanner.nextToken()) {
+		case T_M:
+			break;
+		case T_PRINT:
+			break;
+		case T_NUMBER:
+			break;
+		case T_OPENPAREN:
+			break;
+		case T_CLOSEPAREN:
+			break;
+		case T_OPENBRACKET:
+			break;
+		case T_CLOSEBRACKET:
+			break;
+		case T_SEMICOLON:
+			break;
+		case T_EOF:
+			break;
+		case T_PLUS:
+			break;
+		case T_MINUS:
+			break;
+		case T_MULTIPLY:
+			break;
+		case T_DIVIDE:
+			break;
+		case T_POWER:
+			break;
+		
+	}
+	
     // WRITEME
-    switch (scanner.nextToken()) {
+    /*switch (scanner.nextToken()) {
         case T_PLUS:
             scanner.eatToken(T_PLUS);
             Start();
@@ -547,13 +657,24 @@ void Parser::Start() {
         default:
             parseError(scanner.lineNumber(), scanner.nextToken());
             break;
-    }
+    }*/
 }
 
 // WRITEME (The rest of the nonterminal functions will need to be implemented here)
 
 int main(int argc, char* argv[]) {
-	stack* s = new stack();
+	
+	//testing output for Table
+	/*Table* table = new Table();
+	table->getRule(1,1);
+	table->getRule(1,2);
+	table->getRule(2,1);
+	table->getRule(2,2);
+	table->getRule(11,1);
+	table->getRule(10,14);*/
+	
+	//testing output for Stack
+	/*Stack* s = new Stack();
 	s->push(T_MINUS);
 	s->printStack();
 	s->push(T_PLUS);
@@ -562,25 +683,22 @@ int main(int argc, char* argv[]) {
 	s->push(T_MULTIPLY);
 	s->printStack();
 	s->pop();
-	s->printStack();
-	//cout<<"MAIN: "<<std::endl;
-    /*if (argc == 2 && (strcmp(argv[1], "-s") == 0)) {
-		//cout<<"IN IF\n";
+	s->printStack();*/
+	
+	
+    if (argc == 2 && (strcmp(argv[1], "-s") == 0)) {
         Scanner scanner;
         while (scanner.nextToken() != T_EOF) {
-			//cout<<"inLoop\n";
             std::cout <<tokenToString(scanner.nextToken()) << " ";
             scanner.eatToken(scanner.nextToken());
         }
         std::cout<<std::endl;
     } else if (argc == 2 && (strcmp(argv[1], "-e") == 0)) {
-		//cout<<"IN ELSE IF\n";
         Parser parser(true);
         parser.parse();
     } else {
-		//cout<<"IN ELSE\n";
         Parser parser(false);
         parser.parse();
-    }*/
+    }
     return 0;
 }
