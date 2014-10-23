@@ -171,6 +171,7 @@ token Scanner::nextToken() {
 	//cout<<"token: "<<tokenToString(next)<<endl;
 	return next;
 }
+
 void Scanner::findToken() {
 	next = T_NONTOKEN;
 	tokenLength = 0; //sets length of token to be 1 by default
@@ -405,6 +406,78 @@ int Scanner::getNumberValue() {
     return 0;
 }
 
+struct node {
+	token t = T_NONTOKEN;
+	int num;
+	node* next = NULL; 
+};
+
+class stack {
+	node * head;
+	//node * second;
+	public:
+	stack() {
+		head = NULL;
+	};
+	
+	void push(token T) {
+		cout<<"pushing "<<tokenToString(T)<<endl;
+		node* n = new node();
+		//cout<<"quarter prelim "<<n<<"\n";
+		n->next = NULL;
+		//cout<<"halfway prelim\n";
+		n->t = T;
+		//cout<<"done prelim "<<tokenToString(T)<<endl;
+		if (!head)
+			head = n;
+		else {
+			//cout<<"more than one item in stack\n";
+			node* temp = head;
+			while (temp->next) {
+				//cout<<"inLoop\n";
+				temp = temp->next;
+				//cout<<"leavingLoop\n";
+			}
+			temp->next = n;
+		}
+		//cout<<"done pushing "<<tokenToString(T)<<endl;
+	};
+	
+	node* pop() {
+		if (!head) {
+			node* n = new node();
+			return n;
+		}
+		else {
+			node* temp = head;
+			node* hold;
+			while (temp->next) {
+				hold = temp;
+				temp = temp->next;
+			}
+			hold -> next = NULL;
+			cout<<"popping "<<tokenToString(temp->t)<<endl;
+			return temp;
+		}
+	}
+	
+	void printStack() {
+		node* temp = head;
+		cout<<"printing: ";
+		while (temp) {
+			cout<<tokenToString(temp->t)<<" ";
+			temp = temp->next;
+		}
+		cout<<endl;
+	}
+	
+	
+	void testStack() {
+		push(T_MINUS);
+		printStack();
+	}
+};
+
 class Parser {
     // You are allowed to private fields to the parser, and this may be
     // necessary to complete your implementation. However, this is not
@@ -423,6 +496,27 @@ private:
     // WRITEME
 
 public:
+	void rule1();
+	void rule2();
+	void rule3();
+	void rule4();
+	void rule5();
+	void rule6();
+	void rule7();
+	void rule8();
+	void rule9();
+	void rule10();
+	void rule11();
+	void rule12();
+	void rule13();
+	void rule14();
+	void rule15();
+	void rule16();
+	void rule17();
+	void rule18();
+	void rule19();
+	void rule20();
+	
     void parse();
     Parser(bool evaluate) : evaluate(evaluate) {
         // You may need to complete a Parser constructor here
@@ -459,9 +553,18 @@ void Parser::Start() {
 // WRITEME (The rest of the nonterminal functions will need to be implemented here)
 
 int main(int argc, char* argv[]) {
-
+	stack* s = new stack();
+	s->push(T_MINUS);
+	s->printStack();
+	s->push(T_PLUS);
+	s->pop();
+	s->printStack();
+	s->push(T_MULTIPLY);
+	s->printStack();
+	s->pop();
+	s->printStack();
 	//cout<<"MAIN: "<<std::endl;
-    if (argc == 2 && (strcmp(argv[1], "-s") == 0)) {
+    /*if (argc == 2 && (strcmp(argv[1], "-s") == 0)) {
 		//cout<<"IN IF\n";
         Scanner scanner;
         while (scanner.nextToken() != T_EOF) {
@@ -478,6 +581,6 @@ int main(int argc, char* argv[]) {
 		//cout<<"IN ELSE\n";
         Parser parser(false);
         parser.parse();
-    }
+    }*/
     return 0;
 }
