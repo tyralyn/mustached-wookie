@@ -25,10 +25,7 @@ typedef enum {
     T_EOF,
 	T_NEWLINE,
 	T_WHITESPACE,
-	T_NONTOKEN
-} token;
-
-typedef enum {
+	T_NONTOKEN,
 	N_START,
 	N_STATEMENTS,
 	N_STATEMENTSP,
@@ -40,7 +37,48 @@ typedef enum {
 	N_EXPONENTIATION,
 	N_EXPONENTIATIONP,
 	N_FACTOR
-} nonterminal;	
+} token;
+
+/*typedef enum {
+	N_START,
+	N_STATEMENTS,
+	N_STATEMENTSP,
+	N_STATEMENT,
+	N_EXPRESSION,
+	N_EXPRESSIONP,
+	N_TERM,
+	N_TERMP,
+	N_EXPONENTIATION,
+	N_EXPONENTIATIONP,
+	N_FACTOR
+} nonterminal;	*/
+
+/*string nonterminalToString(nonterminal toConvert) {
+	switch(toConvert) {
+		case N_START:
+			return "start";
+		case N_STATEMENTS:
+			return "statements";
+		case N_STATEMENTSP:
+			return "statements'";
+		case N_STATEMENT:
+			return "statement";
+		case N_EXPRESSION:
+			return "expression";
+		case N_EXPRESSIONP:
+			return "expression'";
+		case N_TERM:
+			return "term";
+		case N_TERMP:
+			return "term'";
+		case N_EXPONENTIATION:
+			return "exponentiation";
+		case N_EXPONENTIATIONP:
+			return "exponentiation'";
+		case N_FACTOR:
+			return "factor";
+	}
+}*/
 
 // This function will convert a token to a string, for display.
 std::string tokenToString(token toConvert) {
@@ -79,6 +117,28 @@ std::string tokenToString(token toConvert) {
             return std::string("NEWLINE");
 		case T_NONTOKEN:
             return std::string("NONTOKEN");
+		case N_START:
+			return "start";
+		case N_STATEMENTS:
+			return "statements";
+		case N_STATEMENTSP:
+			return "statements'";
+		case N_STATEMENT:
+			return "statement";
+		case N_EXPRESSION:
+			return "expression";
+		case N_EXPRESSIONP:
+			return "expression'";
+		case N_TERM:
+			return "term";
+		case N_TERMP:
+			return "term'";
+		case N_EXPONENTIATION:
+			return "exponentiation";
+		case N_EXPONENTIATIONP:
+			return "exponentiation'";
+		case N_FACTOR:
+			return "factor";
     }
 }
 
@@ -451,7 +511,7 @@ class Table {
 };
 
 struct node {
-	token t = T_NONTOKEN;
+	token t;
 	int num;
 	node* next = NULL; 
 };
@@ -462,6 +522,19 @@ class Stack {
 	public:
 	Stack() {
 		head = NULL;
+	};
+	
+	token top() {
+		//token t = pop();
+		//push(t);
+		token t;
+		node* temp = head;
+		while (temp->next) {
+			temp = temp->next;
+		}
+		
+		cout<<"top "<<tokenToString(temp->t)<<"\n";
+		return temp->t;
 	};
 	
 	void push(token T) {
@@ -480,27 +553,41 @@ class Stack {
 		}
 	};
 	
-	node* pop() {
+	token pop() {
 		if (!head) {
 			node* n = new node();
-			return n;
+			cout<<"popping empty!\n";
+			return n->t;
 		}
 		else {
+			cout<<"in else\n";
 			node* temp = head;
-			node* hold;
+			node* hold, hold2;
 			while (temp->next) {
+				cout<<"in while\n";
 				hold = temp;
 				temp = temp->next;
 			}
 			hold -> next = NULL;
+			head = hold;
 			cout<<"popping "<<tokenToString(temp->t)<<endl;
-			return temp;
+			return temp->t;
 		}
 	}
 	
+	
+	
 	void printStack() {
-		node* temp = head;
+		//cout<<"printing start\n";
+		//cout<<"hi\n";
 		cout<<"printing: ";
+		if (!head) {
+			cout<<"empty stack!\n";
+			return;
+			}
+		//cout<<"head: "<<head->t<<endl;
+		node* temp = new node();
+		temp = head;
 		while (temp) {
 			cout<<tokenToString(temp->t)<<" ";
 			temp = temp->next;
@@ -508,11 +595,126 @@ class Stack {
 		cout<<endl;
 	}
 	
+	void rule1() { // start ::= statements
+		pop(); // should be start symbol
+		push(N_STATEMENTS);
+	};
 	
-	void testStack() {
-		push(T_MINUS);
-		printStack();
-	}
+	void rule2() { // statements ::= statement statements'
+		pop();
+		push(N_STATEMENTSP);
+		push(N_STATEMENT);
+	};	
+	
+	void rule3() { // statements' ::= ;statement statements'
+		pop();
+		push(N_STATEMENTSP);
+		push(N_STATEMENT);
+		push(T_SEMICOLON);
+	};
+	
+	void rule4() { // statements' ::= epsilon
+		pop();
+	};
+	
+	void rule5() { // statement ::= m [ expression ]
+		pop();
+		push(T_CLOSEBRACKET);
+		push(N_EXPRESSION);
+		push(T_OPENBRACKET);
+		push(T_M);
+	};
+	
+	void rule6() { // statement ::= print expression
+		pop();
+		push(N_EXPRESSION);
+		push(T_PRINT);
+	};
+	
+	void rule7() { // expression ::= term expression'
+		pop();
+		push(N_EXPRESSIONP);
+		push(N_TERM);
+	};
+	
+	void rule8() { // expression' ::= + term expression'
+		pop();
+		push(N_EXPRESSIONP);
+		push(N_TERM);
+		push(T_PLUS);
+	};
+	
+	void rule9() { // expression' ::= - term expression'
+		pop();
+		push(N_EXPRESSIONP);
+		push(N_TERM);
+		push(T_MINUS);	
+	};
+	
+	void rule10() { // expression' ::= epsilon
+		pop();
+	};
+	
+	void rule11() { // term ::= exponentiation term'
+		pop();
+		push(N_TERMP);
+		push(N_EXPONENTIATION);
+	};
+	
+	void rule12() { // term' ::= * exponentiation term'
+		pop();
+		push(N_TERMP);
+		push(N_EXPONENTIATION);
+		push(T_MULTIPLY);
+	};
+	
+	void rule13() { // term' ::= / exponentiation term'
+		pop();
+		push(N_TERMP);
+		push(N_EXPONENTIATION);
+		push(T_DIVIDE);	
+	};
+	
+	void rule14() { // term' ::= epsilon
+		pop();
+	};
+	
+	void rule15() { // exponentiation ::= factor exponentiation'
+		pop();
+		push(N_EXPONENTIATIONP);
+		push(N_FACTOR);
+	};
+	
+	void rule16() { // exponentiation' ::= ** exponentiation
+		pop();
+		push(N_EXPONENTIATION);
+		push(T_POWER);
+	};
+	
+	void rule17(){ // exponentiation' ::= epsilon
+		pop();
+	};
+	
+	void rule18() { // factor ::= ( expression )
+		pop();
+		push(T_CLOSEPAREN);
+		push(N_EXPRESSION);
+		push(T_OPENPAREN);
+	};
+	
+	void rule19() { // factor ::= m [ expression ]
+		pop();
+		push(T_CLOSEBRACKET);
+		push(N_EXPRESSION);
+		push(T_OPENBRACKET);
+		push(T_M);
+	};
+	
+	void rule20(){ // factor ::= number
+		pop();
+		push(T_NUMBER);
+	};
+	
 };
 
 class Parser {
@@ -534,66 +736,30 @@ private:
     // WRITEME
 
 public:
-	void rule1() { // start ::= statements
-		
+	void start(token input) {
+		token top = stack.top();
+		if (input == T_M) {
+			
+		}
 	};
-	void rule2() { // statements ::= statement statements'
+	void statements(token t);
+	void statementsp(token t);
+	void statement(token t);
+	void expression(token t);
+	void expressionp(token t);
+	void term(token t);
+	void termp(token t);
+	void exponentiation(token t);
+	void exponentiationp(token t);
+	void factor(token t);
 	
-	};
-	void rule3() { // statements' ::= ;statement statements'
-	
-	};
-	void rule4() { // statements' ::= epsilon
-	
-	};
-	void rule5() { // statement ::= m [ expression ]
-	
-	};
-	void rule6() { // statement ::= print expression
-	
-	};
-	void rule7() { // expression ::= term expression'
-	
-	};
-	void rule8() { // expression' ::= + term expression'
-	
-	};
-	void rule9() { // expression' ::= - term expression'
-	
-	};
-	void rule10() { // expression' ::= epsilon
-	
-	};
-	void rule11() { // term ::= exponentiation term'
-	
-	};
-	void rule12() { // term' ::= * exponentiation term'
-	
-	};
-	void rule13() { // term' ::= / exponentiation term'
-	
-	};
-	void rule14() { // term' ::= epsilon
-	
-	};
-	void rule15() { // exponentiation ::= factor exponentiation'
-	
-	};
-	void rule16() { // exponentiation' ::= ** exponentiation'
-	
-	};
-	void rule17(){ // exponentiation' ::= epsilon
-	
-	};
-	void rule18() { // factor ::= ( expression )
-	
-	};
-	void rule19() { // factor ::= m [ expression ]
-	
-	};
-	void rule20(){ // factor ::= number
-	
-	};
+	void match(token top, token input) {
+		if (top == input) {
+			scanner.eatToken(input);
+		}
+		else
+			parseError(scanner.lineNumber(), input);
+	}; // matches token t to current next word
 	
     void parse();
     Parser(bool evaluate) : evaluate(evaluate) {
@@ -613,38 +779,53 @@ void Parser::Start() {
     // non-terminal symbol. In this case, it is just a placeholder
     // which accepts infinite numbers of T_PLUS. You will need to
     // replace this with correct code for the real grammar start symbol.
+	
+	//output for testing stack operations
+	stack.pop();
+	
+	stack.printStack();
+	stack.push(T_POWER);
+	stack.printStack();
+	stack.top();
+	stack.push(N_START);
+	stack.pop();
+	stack.pop();
+	stack.printStack();
+	//stack.
     
-	switch (scanner.nextToken()) {
-		case T_M:
+	
+	
+	/* (scanner.nextToken()) {
+		case T_M://1
 			break;
-		case T_PRINT:
+		case T_PRINT://2
 			break;
-		case T_NUMBER:
+		case T_NUMBER://3
 			break;
-		case T_OPENPAREN:
+		case T_OPENPAREN://4
 			break;
-		case T_CLOSEPAREN:
+		case T_CLOSEPAREN://5
 			break;
-		case T_OPENBRACKET:
+		case T_OPENBRACKET://6
 			break;
-		case T_CLOSEBRACKET:
+		case T_CLOSEBRACKET://7
 			break;
-		case T_SEMICOLON:
+		case T_SEMICOLON://8
 			break;
-		case T_EOF:
+		case T_EOF://9
 			break;
-		case T_PLUS:
+		case T_PLUS://10
 			break;
-		case T_MINUS:
+		case T_MINUS://11
 			break;
-		case T_MULTIPLY:
+		case T_MULTIPLY://12
 			break;
-		case T_DIVIDE:
+		case T_DIVIDE://13
 			break;
-		case T_POWER:
-			break;
+		case T_POWER://14
+			break;*/
 		
-	}
+	//
 	
     // WRITEME
     /*switch (scanner.nextToken()) {
