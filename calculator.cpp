@@ -504,7 +504,7 @@ int Scanner::getNumberValue() {
 		
 	int n = atoi(num);
 	if (negNumber) n *= -1;
-	cout<<"number: "<<n<<" "<<tokenLength<<endl;
+	//cout<<"number: "<<n<<" "<<tokenLength<<endl;
     return n;
 }
 
@@ -722,6 +722,7 @@ class Parser {
 private:
     Scanner scanner;
     Stack stack;
+	numStack ns;
     // This flag indicates whether we should perform evaluation and throw
     // out-of-bounds and divide-by-zero errors. ONLY evaluate and throw these
     // errors if this flag is set to TRUE.
@@ -733,39 +734,39 @@ private:
 
 public:
 	void start(token t) {
-		///cout<<"start function\n";
+		if (DEBUG) cout<<"start function\n";
 		if(t == T_M || t == T_PRINT) {  stack.rule1(); }
 		else parseError(scanner.lineNumber(), t);
 	};
 	
 	void statements(token t) {
-		//cout<<"statements function\n";
+		if (DEBUG) cout<<"statements function\n";
 		if(t == T_M || t == T_PRINT) stack.rule2();
 		else parseError(scanner.lineNumber(), t);
 	};
 	
 	void statementsp(token t) {	
-		//cout<<"statementsp function\n";
+		if (DEBUG) cout<<"statementsp function\n";
 		if (t == T_SEMICOLON) stack.rule3();
 		else if (t == T_EOF) stack.rule4();
 		else parseError(scanner.lineNumber(), t);
 	};
 	
 	void statement(token t) {
-		//cout<<"statement function\n";
+		if (DEBUG) cout<<"statement function\n";
 		if (t == T_M) stack.rule5();
 		else if (t == T_PRINT) stack.rule6();
 		else parseError(scanner.lineNumber(), t);
 	};
 	
 	void expression(token t) {
-		//cout<<"expression function\n";
+		if (DEBUG) cout<<"expression function\n";
 		if (t == T_M || t == T_NUMBER || t == T_OPENPAREN) stack.rule7();
 		else parseError(scanner.lineNumber(), t);
 	};
 	
 	void expressionp(token t) {
-		//cout<<"expressionp function\n";
+		if (DEBUG) cout<<"expressionp function\n";
 		if (t == T_CLOSEPAREN || t == T_CLOSEBRACKET || t == T_SEMICOLON || t == T_EOF)
 			stack.rule10();
 		else if (t == T_PLUS) stack.rule8();
@@ -774,13 +775,13 @@ public:
 	};
 	
 	void term(token t) {
-		//cout<<"term function\n";
+		if (DEBUG) cout<<"term function\n";
 		if (t == T_M ||  t == T_NUMBER || t == T_OPENPAREN) stack.rule11();
 		else parseError(scanner.lineNumber(), t);
 	};
 	
 	void termp(token t) {
-		//cout<<"termp function\n";
+		if (DEBUG) cout<<"termp function\n";
 		if (t == T_CLOSEPAREN || t == T_CLOSEBRACKET || t == T_SEMICOLON || t == T_EOF || t == T_PLUS || t == T_MINUS)
 			stack.rule14();
 		else if (t == T_MULTIPLY) stack.rule12();
@@ -789,13 +790,13 @@ public:
 	};
 	
 	void exponentiation(token t) {
-		//cout<<"exponentiation function\n";
+		if (DEBUG) cout<<"exponentiation function\n";
 		if (t == T_M || t == T_NUMBER || t == T_OPENPAREN) stack.rule15();
 		else parseError(scanner.lineNumber(), t);
 	};
 	
 	void exponentiationp(token t) {
-		//cout<<"exponentiationp function\n";
+		if (DEBUG) cout<<"exponentiationp function\n";
 		if (t == T_CLOSEPAREN || t == T_CLOSEBRACKET || t == T_SEMICOLON || t == T_EOF || t == T_PLUS || t == T_MINUS || t == T_MULTIPLY  || t == T_DIVIDE)
 			stack.rule17();
 		else if (t == T_POWER) stack.rule16();
@@ -803,7 +804,7 @@ public:
 	};
 	
 	void factor(token t) {
-		//cout<<"factor function\n";
+		if (DEBUG) cout<<"factor function\n";
 		if (t == T_M) stack.rule19();
 		else if (t == T_NUMBER) stack.rule20();
 		else if (t == T_OPENPAREN) stack.rule18();
@@ -811,7 +812,7 @@ public:
 	};
 	
 	void match(token top, token input) {
-		//cout<<"called match function\n";
+		if (DEBUG) cout<<"called match function\n";
 		if (top == input) {
 			scanner.eatToken(input);
 			stack.pop();
@@ -885,14 +886,6 @@ void Parser::parse() {
 		//scanner.printNumber();
 		bool b = produce(i,t);
 		if (!b) match(t, scanner.nextToken());
-		//cout<<(char)cin.peek()<<endl;
-		//cout<<tokenToString(scanner.nextToken())<<endl;
-		//cout<<(char)cin.peek()<<endl;
-		//char hold = cin.get();
-		//cout<<(char)cin.peek()<<endl;
-		//char hold2 = cin.get();
-		//cin.putback(hold2);
-		//cin.putback(hold);
 		if (DEBUG) stack.printStack();
 		
 	}
@@ -914,14 +907,14 @@ void Parser::Start() {
 
 int main(int argc, char* argv[]) {
 	
-	numStack* n = new numStack();
+	/*numStack* n = new numStack();
 	n->push (9);
 	n->push (0);
 	n->printNumStack();
 	n->pop();
 	n->printNumStack();
 	n->pop();
-	n->printNumStack();
+	n->printNumStack();*/
 	
     if (argc == 2 && (strcmp(argv[1], "-s") == 0)) {
         Scanner scanner;
