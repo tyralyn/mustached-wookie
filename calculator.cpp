@@ -206,9 +206,9 @@ class Scanner {
 
 void Scanner::clearNumArray() {
 	for (int i = 1; i < 16; i++) {
-		number[i]=0;
+		number[i]='0';
 	}
-	number[0]=1;
+	number[0]='1';
 }
 
 void Scanner::appendNumToArray(char c) {
@@ -240,11 +240,14 @@ token Scanner::nextToken() {
     // This is a placeholder token, you will need to replace this code
     // with code to return the correct next token
 	findToken();
-	//cout<<"token: "<<tokenToString(next)<<endl;
+	//cout<<"1Nexttokenfunction: "<<tokenToString(next)<<endl;
+	findToken();
+	//cout<<"2Nexttokenfunction: "<<tokenToString(next)<<endl;
 	return next;
 }
 
 void Scanner::findToken() {
+	//cout<<"1next: "<<cin.peek()<<endl;
 	next = T_NONTOKEN;
 	tokenLength = 0; //sets length of token to be 1 by default
 	clearNumArray(); //clears array of numbers to be clear
@@ -266,12 +269,25 @@ void Scanner::findToken() {
 		}
 	} 
 	
-	//if next char is eof, set next token to eof and end
-	if (!cin) {
-		next = T_EOF;
-		return;
+	c=cin.peek();
+	if (c=='\n') {
+		next = T_NEWLINE;
+		line++;
+		cin.get();
 	}
 	
+	if( c != '0' && c != '1' && c != '2'
+			&& c != '3' && c != '4' && c != '5'
+			&& c != '6' && c != '7' && c != '8' 
+			&& c != '9' && c != 'p' && c != 'r' 
+			&& c != 'i' && c != 'n' && c != 't' 
+			&& c != 'm' && c != '[' && c != ']' 
+			&& c != '(' && c != ')' && c != '*' 
+			&& c != '+' && c != '-' && c != '/'
+			&& c != ' ' && c != '\n' && c != ';'
+			&& c != '=') {
+			scanError(lineNumber(),c);
+			}
 	//check for next character being a number by cycling through until no longer a number
 	do {
 		c = cin.peek();
@@ -281,8 +297,7 @@ void Scanner::findToken() {
 			|| c == '9' ) {
 			next = T_NUMBER;
 			tokenLength++;
-			appendNumToArray(c);
-			char k = cin.get();
+			appendNumToArray(cin.get());
 			}
 		else {
 			numbers = false;
@@ -292,6 +307,7 @@ void Scanner::findToken() {
 	//if a number, put digits back in stream
 	if (next == T_NUMBER) {
 		repopulateIstream();
+		//cout<<"was a number. next: "<<(char)cin.peek()<<endl;
 		return;
 	}
 	
@@ -350,10 +366,12 @@ void Scanner::findToken() {
 				if (cin.peek()=='*') {
 					//cout<<"SO POWERFUL\n";
 					next = T_POWER;
-					cin.putback('*');
 				}
 				else
 					next = T_MULTIPLY;
+				cin.putback('*');
+				//cout<<"cin peek in *: "<<(char)cin.peek()<<endl;
+				//cout<<"cin peek in *: "<<(char)cin.peek()<<endl;
 				break;
 			case '/':
 				next = T_DIVIDE;
@@ -379,27 +397,25 @@ void Scanner::findToken() {
 			case ';':
 				next = T_SEMICOLON;
 				break;
-			case '\n':
-				next = T_NEWLINE;
-				line++;
-				break;
 			default:
-				cout<<"default error\n";
-				scanError(lineNumber(),c);
+				next = T_EOF;
 				break;
 	}
+	//cout<<"peeking: "<<(char)cin.peek()<<endl;
+	//cout<<"@END OF NEXT: "<<tokenToString(next)<<endl;
+	//cout<<"@END OF NEXT: "<<tokenToString(next)<<endl;
 	//cout<<"token2: \""<<c<<" "<<tokenToString(next)<<"\""<<endl<<endl;
-	//char c1 = cin.get();
-	//char c2 = cin.get();
-	//char c3 = cin.get();
-	//char c4 = cin.get();
-	//char c5 = cin.get();
+	char h = cin.get();
+	char i = cin.get();
+	//cout<<"next: "<<i<<" "<<(char)cin.peek()<<endl;
+	cin.putback(i);
+	cin.putback(h);
 	//cout<<"token: "<<tokenToString(next)<<" upcoming: "<<c1<<c2<<c3<<c4<<c5<<endl;
 }
 
 void Scanner::eatToken(token toConsume) {
     // This function consumes the next token.
-	//cout<<"--EATING TOKEN: "<<tokenToString(toConsume)<<endl;
+	cout<<"eating: "<<tokenToString(toConsume)<<endl;
 	switch (toConsume) {
         case T_PLUS:
             cin.get();
@@ -437,17 +453,15 @@ void Scanner::eatToken(token toConsume) {
 			break;
         case T_M:
             cin.get();
-            cin.get();
 			break;
         case T_PRINT:
-            cin.get();
-			cin.get();
-			cin.get();
-			cin.get();
-			cin.get();
+			for (int i = 0; i < 5; i++) {
+				cin.get();
+			}
 			break;
         case T_NUMBER:
-			//cout<<"EATING NUMBER\n";
+			cout<<"number length: "<<tokenLength<<endl;
+			//printNumber();
 			for (int i = 1; i<= tokenLength; i++)
 				cin.get();
 			break;
@@ -458,7 +472,6 @@ void Scanner::eatToken(token toConsume) {
 			cin.get();
 			break;
     }
-	
 }
 
 int Scanner::lineNumber() {
@@ -527,14 +540,8 @@ class Stack {
 	token top() {
 		//token t = pop();
 		//push(t);
-		token t;
-		node* temp = head;
-		while (temp->next) {
-			temp = temp->next;
-		}
-		
-		cout<<"top "<<tokenToString(temp->t)<<"\n";
-		return temp->t;
+		cout<<"top: "<<tokenToString(head->t)<<endl;
+		return head->t;
 	};
 	
 	void push(token T) {
@@ -542,15 +549,8 @@ class Stack {
 		node* n = new node();
 		n->next = NULL;
 		n->t = T;
-		if (!head)
-			head = n;
-		else {
-			node* temp = head;
-			while (temp->next) {
-				temp = temp->next;
-			}
-			temp->next = n;
-		}
+		n->next = head;
+		head = n;
 	};
 	
 	token pop() {
@@ -560,22 +560,12 @@ class Stack {
 			return n->t;
 		}
 		else {
-			cout<<"in else\n";
-			node* temp = head;
-			node* hold, hold2;
-			while (temp->next) {
-				cout<<"in while\n";
-				hold = temp;
-				temp = temp->next;
-			}
-			hold -> next = NULL;
-			head = hold;
-			cout<<"popping "<<tokenToString(temp->t)<<endl;
-			return temp->t;
+			token h = head->t;
+			head = head->next;
+			cout<<"popping "<<tokenToString(h)<<"\n";
+			return h;
 		}
 	}
-	
-	
 	
 	void printStack() {
 		//cout<<"printing start\n";
@@ -596,17 +586,20 @@ class Stack {
 	}
 	
 	void rule1() { // start ::= statements
+		cout<<"rule 1\n";
 		pop(); // should be start symbol
 		push(N_STATEMENTS);
 	};
 	
 	void rule2() { // statements ::= statement statements'
+		cout<<"rule 2\n";
 		pop();
 		push(N_STATEMENTSP);
 		push(N_STATEMENT);
 	};	
 	
 	void rule3() { // statements' ::= ;statement statements'
+		cout<<"rule 3\n";
 		pop();
 		push(N_STATEMENTSP);
 		push(N_STATEMENT);
@@ -614,11 +607,15 @@ class Stack {
 	};
 	
 	void rule4() { // statements' ::= epsilon
+		cout<<"rule 4\n";
 		pop();
 	};
 	
-	void rule5() { // statement ::= m [ expression ]
+	void rule5() { // statement ::= m [ expression ] = expression
+		cout<<"rule 5\n";
 		pop();
+		push(N_EXPRESSION);
+		push(T_EQUALS);
 		push(T_CLOSEBRACKET);
 		push(N_EXPRESSION);
 		push(T_OPENBRACKET);
@@ -626,18 +623,21 @@ class Stack {
 	};
 	
 	void rule6() { // statement ::= print expression
+		cout<<"rule 6\n";
 		pop();
 		push(N_EXPRESSION);
 		push(T_PRINT);
 	};
 	
 	void rule7() { // expression ::= term expression'
+		cout<<"rule 7\n";
 		pop();
 		push(N_EXPRESSIONP);
 		push(N_TERM);
 	};
 	
 	void rule8() { // expression' ::= + term expression'
+		cout<<"rule 8\n";
 		pop();
 		push(N_EXPRESSIONP);
 		push(N_TERM);
@@ -645,6 +645,7 @@ class Stack {
 	};
 	
 	void rule9() { // expression' ::= - term expression'
+		cout<<"rule 9\n";
 		pop();
 		push(N_EXPRESSIONP);
 		push(N_TERM);
@@ -652,16 +653,19 @@ class Stack {
 	};
 	
 	void rule10() { // expression' ::= epsilon
+		cout<<"rule 10\n";
 		pop();
 	};
 	
 	void rule11() { // term ::= exponentiation term'
+		cout<<"rule 11\n";
 		pop();
 		push(N_TERMP);
 		push(N_EXPONENTIATION);
 	};
 	
 	void rule12() { // term' ::= * exponentiation term'
+		cout<<"rule 12\n";
 		pop();
 		push(N_TERMP);
 		push(N_EXPONENTIATION);
@@ -669,6 +673,7 @@ class Stack {
 	};
 	
 	void rule13() { // term' ::= / exponentiation term'
+		cout<<"rule 13\n";
 		pop();
 		push(N_TERMP);
 		push(N_EXPONENTIATION);
@@ -676,26 +681,31 @@ class Stack {
 	};
 	
 	void rule14() { // term' ::= epsilon
+		cout<<"rule 14\n";
 		pop();
 	};
 	
 	void rule15() { // exponentiation ::= factor exponentiation'
+		cout<<"rule 15\n";
 		pop();
 		push(N_EXPONENTIATIONP);
 		push(N_FACTOR);
 	};
 	
 	void rule16() { // exponentiation' ::= ** exponentiation
+		cout<<"rule 16\n";
 		pop();
 		push(N_EXPONENTIATION);
 		push(T_POWER);
 	};
 	
 	void rule17(){ // exponentiation' ::= epsilon
+		cout<<"rule 17\n";
 		pop();
 	};
 	
 	void rule18() { // factor ::= ( expression )
+		cout<<"rule 18\n";
 		pop();
 		push(T_CLOSEPAREN);
 		push(N_EXPRESSION);
@@ -703,6 +713,7 @@ class Stack {
 	};
 	
 	void rule19() { // factor ::= m [ expression ]
+		cout<<"rule 19\n";
 		pop();
 		push(T_CLOSEBRACKET);
 		push(N_EXPRESSION);
@@ -711,6 +722,7 @@ class Stack {
 	};
 	
 	void rule20(){ // factor ::= number
+		cout<<"rule 20\n";
 		pop();
 		push(T_NUMBER);
 	};
@@ -736,41 +748,163 @@ private:
     // WRITEME
 
 public:
-	void start(token input) {
-		token top = stack.top();
-		if (input == T_M) {
-			
-		}
+	void start(token t) {
+		cout<<"start function\n";
+		if(t == T_M || t == T_PRINT) {  stack.rule1(); }
+		else parseError(scanner.lineNumber(), t);
 	};
-	void statements(token t);
-	void statementsp(token t);
-	void statement(token t);
-	void expression(token t);
-	void expressionp(token t);
-	void term(token t);
-	void termp(token t);
-	void exponentiation(token t);
-	void exponentiationp(token t);
-	void factor(token t);
+	
+	void statements(token t) {
+		cout<<"statements function\n";
+		if(t == T_M || t == T_PRINT) stack.rule2();
+		else parseError(scanner.lineNumber(), t);
+	};
+	
+	void statementsp(token t) {	
+		cout<<"statementsp function\n";
+		if (t == T_SEMICOLON) stack.rule3();
+		else if (t == T_EOF) stack.rule4();
+		else parseError(scanner.lineNumber(), t);
+	};
+	
+	void statement(token t) {
+		cout<<"statement function\n";
+		if (t == T_M) stack.rule5();
+		else if (t == T_PRINT) stack.rule6();
+		else parseError(scanner.lineNumber(), t);
+	};
+	
+	void expression(token t) {
+		cout<<"expression function\n";
+		if (t == T_M || t == T_NUMBER || t == T_OPENPAREN) stack.rule7();
+		else parseError(scanner.lineNumber(), t);
+	};
+	
+	void expressionp(token t) {
+		cout<<"expressionp function\n";
+		if (t == T_CLOSEPAREN || t == T_CLOSEBRACKET || t == T_SEMICOLON || t == T_EOF)
+			stack.rule10();
+		else if (t == T_PLUS) stack.rule8();
+		else if (t == T_MINUS) stack.rule9();
+		else parseError(scanner.lineNumber(), t);
+	};
+	
+	void term(token t) {
+		cout<<"term function\n";
+		if (t == T_M ||  t == T_NUMBER || t == T_OPENPAREN) stack.rule11();
+		else parseError(scanner.lineNumber(), t);
+	};
+	
+	void termp(token t) {
+		cout<<"termp function\n";
+		if (t == T_CLOSEPAREN || t == T_CLOSEBRACKET || t == T_SEMICOLON || t == T_EOF || t == T_PLUS || t == T_MINUS)
+			stack.rule14();
+		else if (t == T_MULTIPLY) stack.rule12();
+		else if (t == T_DIVIDE) stack.rule13();
+		else parseError(scanner.lineNumber(), t);
+	};
+	
+	void exponentiation(token t) {
+		cout<<"exponentiation function\n";
+		if (t == T_M || t == T_NUMBER || t == T_OPENPAREN) stack.rule15();
+		else parseError(scanner.lineNumber(), t);
+	};
+	
+	void exponentiationp(token t) {
+		cout<<"exponentiationp function\n";
+		if (t == T_CLOSEPAREN || t == T_CLOSEBRACKET || t == T_SEMICOLON || t == T_EOF || t == T_PLUS || t == T_MINUS || t == T_MULTIPLY  || t == T_DIVIDE)
+			stack.rule17();
+		else if (t == T_POWER) stack.rule16();
+		else parseError(scanner.lineNumber(), t);
+	};
+	
+	void factor(token t) {
+		cout<<"factor function\n";
+		if (t == T_M) stack.rule19();
+		else if (t == T_NUMBER) stack.rule20();
+		else if (t == T_OPENPAREN) stack.rule18();
+		else parseError(scanner.lineNumber(), t);
+	};
 	
 	void match(token top, token input) {
+		cout<<"called match function\n";
 		if (top == input) {
 			scanner.eatToken(input);
+			stack.pop();
 		}
 		else
-			parseError(scanner.lineNumber(), input);
+			mismatchError(scanner.lineNumber(), top, input);
+		cout<<"nextToken: "<<tokenToString(scanner.nextToken())<<endl;
 	}; // matches token t to current next word
 	
     void parse();
+	bool produce(token i, token t);
     Parser(bool evaluate) : evaluate(evaluate) {
         // You may need to complete a Parser constructor here
         // WRITEME
     }
 };
 
+bool Parser::produce(token i, token t) {
+	switch (t) {
+		case N_START:
+			//cout<<"instart\n";
+			start(i);
+			break;
+		case N_STATEMENTS:
+			statements(i);
+			break;
+		case N_STATEMENTSP:
+			statementsp(i);
+			break;
+		case N_STATEMENT:
+			statement(i);
+			break;
+		case N_EXPRESSION:
+			expression(i);
+			break;
+		case N_EXPRESSIONP:
+			expressionp(i);
+			break;
+		case N_TERM:
+			term(i);
+			break;
+		case N_TERMP:
+			termp(i);
+			break;
+		case N_EXPONENTIATION:
+			exponentiation(i);
+			break;
+		case N_EXPONENTIATIONP:
+			exponentiationp(i);
+			break;
+		case N_FACTOR:
+			factor(i);
+			break;
+		default:
+			return false;
+		}
+	return true;
+}
+
 void Parser::parse() {
     // This is the entry point for the parser, which simply starts parsing
     // the grammar by calling the function for the start symbol.
+	stack.push(T_EOF);
+	stack.push(N_START);
+	
+	while (scanner.nextToken() != T_EOF) {
+		cout<<"---------produce------------"<<endl;
+		token t = stack.top();
+		token i = scanner.nextToken();
+		cout<<"stack: "<<tokenToString(t)<<" input: "<<tokenToString(scanner.nextToken())<<endl;
+		//scanner.printNumber();
+		bool b = produce(i,t);
+		if (!b) match(t, scanner.nextToken());
+		cout<<tokenToString(scanner.nextToken())<<endl;
+		stack.printStack();
+	}
+	
     Start();
 }
 
@@ -784,14 +918,11 @@ void Parser::Start() {
 	stack.pop();
 	
 	stack.printStack();
-	stack.push(T_POWER);
-	stack.printStack();
-	stack.top();
 	stack.push(N_START);
-	stack.pop();
-	stack.pop();
 	stack.printStack();
-	//stack.
+	stack.rule1();
+	stack.printStack();
+	
     
 	
 	
